@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - Chat Application{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">Profile Information</h2>
+            
+            <div class="mb-6">
+                <p class="text-base-content/70">Username: <span class="font-semibold text-base-content">{{ user.username }}</span></p>
+                <p class="text-base-content/70">Email: <span class="font-semibold text-base-content">{{ user.email }}</span></p>
+            </div>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Bio</span>
+                    </label>
+                    <textarea name="bio" class="textarea textarea-bordered h-24" placeholder="Tell us about yourself">{{ user.bio }}</textarea>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Theme Preference</span>
+                    </label>
+                    <select name="theme_preference" class="select select-bordered w-full">
+                        {% for value, label in theme_choices %}
+                            <option value="{{ value }}" {% if user.theme_preference == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Enable Notifications</span>
+                        <input type="checkbox" name="notification_enabled" class="toggle toggle-primary" 
+                               {% if user.notification_enabled %}checked{% endif %} />
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        Update Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title text-xl mb-4">Chat History</h3>
+            <div id="chat-history" class="space-y-4">
+                <!-- Chat history will be loaded here via JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadChatHistory() {
+    try {
+        const response = await fetch('/api/chat/');
+        if (!response.ok) throw new Error('Failed to load chat history');
+        
+        const data = await response.json();
+        const chatHistoryDiv = document.getElementById('chat-history');
+        
+        if (data.length === 0) {
+            chatHistoryDiv.innerHTML = '<div class="text-base-content/70 text-center">No chat history yet.</div>';
+            return;
+        }
+
+        chatHistoryDiv.innerHTML = data.map(chat => `
+            <div class="border-b border-base-300 pb-4">
+                <div class="mb-2">
+                    <p class="text-sm text-base-content/70">${new Date(chat.timestamp).toLocaleString()}</p>
+                </div>
+                <div class="bg-base-200 p-3 rounded-lg mb-2">
+                    <p class="text-base-content"><span class="font-semibold">You:</span> ${chat.user_message}</p>
+                </div>
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <p class="text-base-content"><span class="font-semibold">Bot:</span> ${chat.bot_response}</p>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading chat history:', error);
+        showToast('Failed to load chat history', 'error');
+    }
+}
+
+// Load chat history when the page loads
+document.addEventListener('DOMContentLoaded', loadChatHistory);
+</script>
+{% endblock %}
