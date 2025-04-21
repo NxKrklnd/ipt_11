@@ -11,7 +11,7 @@ class GroqClient:
         self.client = groq.Groq(
             api_key=api_key,
         )
-        self.chat_model = "llama-3.2-3b-preview"  # Updated to use a supported model
+        self.chat_model = "qwen-qwq-32b"  # Updated to use the specified model
         self.system_prompt = """You are a helpful AI assistant. Provide clear, accurate, and engaging responses.
         Keep responses concise but informative. Be friendly and professional."""
 
@@ -37,16 +37,20 @@ class GroqClient:
             completion = self.client.chat.completions.create(
                 model=self.chat_model,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=1000,
-                top_p=1,
-                stream=False
+                temperature=0.6,
+                max_tokens=4096,
+                top_p=0.95,
+                stream=True,
+                stop=None
             )
 
-            # Extract the response
-            response = completion.choices[0].message.content
-            return response
+            # Handle streaming response
+            response_text = ""
+            for chunk in completion:
+                if chunk.choices[0].delta.content:
+                    response_text += chunk.choices[0].delta.content
+            return response_text
 
         except Exception as e:
             print(f"Error in Groq API call: {str(e)}")
-            return "I apologize, but I'm having trouble processing your request at the moment. Please try again later." 
+            return "I apologize, but I'm having trouble processing your request at the moment. Please try again later."

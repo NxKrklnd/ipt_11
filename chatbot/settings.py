@@ -93,8 +93,17 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'chat.UserProfile'
 
-# Groq API configuration
+# API Keys configuration
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+
+# Available AI Models
+AVAILABLE_MODELS = {
+    'groq': {
+        'name': 'Groq LLama',
+        'model_id': 'llama-3.2-3b-preview',
+        'api_key_setting': 'GROQ_API_KEY'
+    }
+}
 
 # Rate limiting configuration
 CACHES = {

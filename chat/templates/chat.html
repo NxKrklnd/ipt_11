@@ -24,14 +24,19 @@
 
         <!-- Message Input Form -->
         <div class="card-body pt-0">
-            <form id="chat-form" class="flex gap-2" novalidate>
+            <form id="chat-form" class="space-y-2" novalidate>
                 {% csrf_token %}
-                <input type="text" id="message-input" 
-                    class="input input-bordered flex-1"
-                    placeholder="Type your message here...">
-                <button type="submit" class="btn btn-primary" id="send-button">
-                    Send
-                </button>
+                <div class="flex gap-2">
+                    <select id="model-select" class="select select-bordered">
+                        <option value="groq">Groq AI</option>
+                    </select>
+                    <input type="text" id="message-input" 
+                        class="input input-bordered flex-1"
+                        placeholder="Type your message here...">
+                    <button type="submit" class="btn btn-primary" id="send-button">
+                        Send
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -144,6 +149,9 @@ async function sendMessage(message) {
     isProcessing = true;
 
     const sendButton = document.getElementById('send-button');
+    const modelSelect = document.getElementById('model-select');
+    const selectedModel = modelSelect.value;
+    
     sendButton.disabled = true;
     sendButton.classList.add('loading');
 
@@ -155,7 +163,8 @@ async function sendMessage(message) {
                 'X-CSRFToken': document.querySelector('#chat-form [name=csrfmiddlewaretoken]').value
             },
             body: JSON.stringify({
-                user_message: message
+                user_message: message,
+                model: selectedModel
             })
         });
 

@@ -14,9 +14,10 @@ from .serializers import ChatHistorySerializer
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .groq_client import GroqClient
+from django.conf import settings
 import re
 
-# Initialize Groq client
+# Initialize AI client
 groq_client = GroqClient()
 
 def register(request):
@@ -197,6 +198,14 @@ class ChatHistoryList(APIView):
             # Enforce rate limiting
             self.check_throttles(request)
             
+            # Get selected model from request
+            model_choice = request.data.get('model', 'groq')
+            if model_choice not in settings.AVAILABLE_MODELS:
+                return Response(
+                    {'error': 'Invalid model selection'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             # Validate message content
             user_message = request.data.get('user_message', '').strip()
             if not user_message:
@@ -208,8 +217,11 @@ class ChatHistoryList(APIView):
             # Get recent chat history for context
             recent_chats = ChatHistory.objects.filter(user=request.user).order_by('-timestamp')[:5]
             
-            # Get response from Groq
-            bot_response = groq_client.get_response(user_message, recent_chats)
+            # Get response based on selected model
+            if model_choice == 'groq':
+                bot_response = groq_client.get_response(user_message, recent_chats)
+            else:  # google model
+                bot_response = google_client.get_response(user_message, recent_chats)
 
             # Create chat history entry
             chat_data = {
