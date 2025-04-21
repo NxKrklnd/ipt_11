@@ -1,5 +1,5 @@
 django>=4.2.0
-django-rest-framework>=3.14.0
+djangorestframework>=3.14.0
 gradio>=4.19.0
 groq>=0.4.0
 requests>=2.31.0
